@@ -35,11 +35,12 @@
         }
 
         showIframe(args) {
-            this.hideIframe(); // Clear old iframe
+            this.hideIframe(); // Clean up
 
             const iframe = document.createElement('iframe');
             iframe.src = args.URL;
             iframe.setAttribute('id', 'scratch-iframe-overlay');
+
             Object.assign(iframe.style, {
                 position: 'absolute',
                 border: 'none',
@@ -66,13 +67,10 @@
 
         startSync() {
             const updatePosition = () => {
-                // More reliable query: find the stage canvas itself
-                const canvas = document.querySelector('canvas.stage-canvas');
-
+                const canvas = this.findStageCanvas();
                 if (!canvas || !this.iframe) return;
 
                 const rect = canvas.getBoundingClientRect();
-
                 Object.assign(this.iframe.style, {
                     top: `${rect.top + window.scrollY}px`,
                     left: `${rect.left + window.scrollX}px`,
@@ -84,7 +82,27 @@
             updatePosition();
             this.syncInterval = setInterval(updatePosition, 200);
         }
+
+        findStageCanvas() {
+            // Try to find the largest canvas on the page (usually the Scratch stage)
+            const canvases = Array.from(document.querySelectorAll('canvas'));
+            let bestCanvas = null;
+            let largestArea = 0;
+
+            for (const canvas of canvases) {
+                const rect = canvas.getBoundingClientRect();
+                const area = rect.width * rect.height;
+                if (area > largestArea) {
+                    largestArea = area;
+                    bestCanvas = canvas;
+                }
+            }
+
+            return bestCanvas;
+        }
     }
 
+    Scratch.extensions.register(new IframeExtension());
+})(Scratch);
     Scratch.extensions.register(new IframeExtension());
 })(Scratch);
